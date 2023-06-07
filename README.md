@@ -62,7 +62,9 @@ https://www.aiwaves.org/recurrentgpt  and https://www.aiwaves.org/interactivefic
 
 Or you can run it on your local machine by:
 ```
+download model from https://huggingface.co/sentence-transformers/multi-qa-mpnet-base-cos-v1
 export OPENAI_API_KEY="your_api_key"
+export OPENAI_API_BASE="your_api_base,eg https://proxy.openai.com/v1"
 python gradio_server.py
 ```
 
