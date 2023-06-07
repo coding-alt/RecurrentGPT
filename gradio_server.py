@@ -6,52 +6,43 @@ from sentence_transformers import SentenceTransformer
 from utils import get_init, parse_instructions
 import re
 
-# from urllib.parse import quote_plus
-# from pymongo import MongoClient
-
-# uri = "mongodb://%s:%s@%s" % (quote_plus("xxx"),
-#                               quote_plus("xxx"), "localhost")
-# client = MongoClient(uri, maxPoolSize=None)
-# db = client.recurrentGPT_db
-# log = db.log
-
 _CACHE = {}
 
 
 # Build the semantic search model
-embedder = SentenceTransformer('multi-qa-mpnet-base-cos-v1')
+embedder = SentenceTransformer('sentence-transformers/multi-qa-mpnet-base-cos-v1')
 
 def init_prompt(novel_type, description):
     if description == "":
         description = ""
     else:
-        description = " about " + description
+        description = " 关于 " + description
     return f"""
-Please write a {novel_type} novel{description} with 50 chapters. Follow the format below precisely:
+请按照以下精确的格式写一本{novel_type}类型的小说{description}，包含50章：
 
-Begin with the name of the novel.
-Next, write an outline for the first chapter. The outline should describe the background and the beginning of the novel.
-Write the first three paragraphs with their indication of the novel based on your outline. Write in a novelistic style and take your time to set the scene.
-Write a summary that captures the key information of the three paragraphs.
-Finally, write three different instructions for what to write next, each containing around five sentences. Each instruction should present a possible, interesting continuation of the story.
-The output format should follow these guidelines:
-Name: <name of the novel>
-Outline: <outline for the first chapter>
-Paragraph 1: <content for paragraph 1>
-Paragraph 2: <content for paragraph 2>
-Paragraph 3: <content for paragraph 3>
-Summary: <content of summary>
-Instruction 1: <content for instruction 1>
-Instruction 2: <content for instruction 2>
-Instruction 3: <content for instruction 3>
+首先，写下小说的名字。
+接下来，为第一章写一个大纲。大纲应描述小说的背景和开始。
+根据你的大纲，写下小说的前三段。请用小说式的风格，花时间来描绘场景。
+写下一段总结，捕捉到三段中的关键信息。
+最后，写下三个不同的写作指示，每个包含大约五句话。每个指示应提出一个可能的、有趣的故事续写方式。
+输出格式应遵循以下指南：
+名称：<小说的名字>
+大纲：<第一章的大纲>
+第一段：<第一段的内容>
+第二段：<第二段的内容>
+第三段：<第三段的内容>
+总结：<总结的内容>
+指示 1：<写作指示1的内容>
+指示 2：<写作指示2的内容>
+指示 3：<写作指示3的内容>
 
-Make sure to be precise and follow the output format strictly.
+请确保准确并严格遵守输出格式。
 
 """
 
 def init(novel_type, description, request: gr.Request):
     if novel_type == "":
-        novel_type = "Science Fiction"
+        novel_type = "科幻小说"
     global _CACHE
     cookie = request.headers['cookie']
     cookie = cookie.split('; _gat_gtag')[0]
@@ -67,11 +58,11 @@ def init(novel_type, description, request: gr.Request):
 
     _CACHE[cookie] = {"start_input_to_human": start_input_to_human,
                       "init_paragraphs": init_paragraphs}
-    written_paras = f"""Title: {init_paragraphs['name']}
+    written_paras = f"""标题： {init_paragraphs['name']}
 
-Outline: {init_paragraphs['Outline']}
+大纲： {init_paragraphs['Outline']}
 
-Paragraphs:
+段落：
 
 {start_input_to_human['input_paragraph']}"""
     long_memory = parse_instructions([init_paragraphs['Paragraph 1'], init_paragraphs['Paragraph 2']])
@@ -170,104 +161,89 @@ def on_select(instruction1, instruction2, instruction3, evt: gr.SelectData):
     return selected_plan
 
 
-with gr.Blocks(title="RecurrentGPT", css="footer {visibility: hidden}", theme="default") as demo:
-    gr.Markdown(
-        """
-    # RecurrentGPT
-    Interactive Generation of (Arbitrarily) Long Texts with Human-in-the-Loop
-    """)
-    with gr.Tab("Auto-Generation"):
+with gr.Blocks(title="小说创作助手", css="footer {visibility: hidden}", theme="Base") as demo:
+    gr.Markdown("# 小说创作助手")
+    with gr.Tab("全自动模式"):
         with gr.Row():
             with gr.Column():
                 with gr.Box():
                     with gr.Row():
                         with gr.Column(scale=1, min_width=200):
                             novel_type = gr.Textbox(
-                                label="Novel Type", placeholder="e.g. science fiction")
+                                label="小说类型", placeholder="例如：科幻小说")
                         with gr.Column(scale=2, min_width=400):
-                            description = gr.Textbox(label="Description")
+                            description = gr.Textbox(label="描述")
                 btn_init = gr.Button(
-                    "Init Novel Generation", variant="primary")
-                gr.Examples(["Science Fiction", "Romance", "Mystery", "Fantasy",
-                            "Historical", "Horror", "Thriller", "Western", "Young Adult", ], inputs=[novel_type])
+                    "初始化小说创作", variant="primary")
+                gr.Examples(["玄幻","科幻","奇幻","武侠","仙侠","历史","言情","游戏","体育","灵异","同人","耽美","二次元"], inputs=[novel_type])
                 written_paras = gr.Textbox(
-                    label="Written Paragraphs (editable)", max_lines=21, lines=21)
+                    label="撰写段落（可编辑）", max_lines=21, lines=21)
             with gr.Column():
                 with gr.Box():
-                    gr.Markdown("### Memory Module\n")
+                    gr.Markdown("### 记忆模块\n")
                     short_memory = gr.Textbox(
-                        label="Short-Term Memory (editable)", max_lines=3, lines=3)
+                        label="短期记忆（可编辑）", max_lines=3, lines=3)
                     long_memory = gr.Textbox(
-                        label="Long-Term Memory (editable)", max_lines=6, lines=6)
-                    # long_memory = gr.Dataframe(
-                    #     # label="Long-Term Memory (editable)",
-                    #     headers=["Long-Term Memory (editable)"],
-                    #     datatype=["str"],
-                    #     row_count=3,
-                    #     max_rows=3,
-                    #     col_count=(1, "fixed"),
-                    #     type="array",
-                    # )
+                        label="长期记忆（可编辑）", max_lines=6, lines=6)
                 with gr.Box():
-                    gr.Markdown("### Instruction Module\n")
+                    gr.Markdown("### 指示模块\n")
                     with gr.Row():
                         instruction1 = gr.Textbox(
-                            label="Instruction 1 (editable)", max_lines=4, lines=4)
+                            label="指示1（可编辑）", max_lines=4, lines=4)
                         instruction2 = gr.Textbox(
-                            label="Instruction 2 (editable)", max_lines=4, lines=4)
+                            label="指示2（可编辑）", max_lines=4, lines=4)
                         instruction3 = gr.Textbox(
-                            label="Instruction 3 (editable)", max_lines=4, lines=4)
+                            label="指示3（可编辑）", max_lines=4, lines=4)
                     selected_plan = gr.Textbox(
-                        label="Revised Instruction (from last step)", max_lines=2, lines=2)
+                        label="修改后的指示（从最后一步开始）", max_lines=2, lines=2)
 
-                btn_step = gr.Button("Next Step", variant="primary")
+                btn_step = gr.Button("下一步", variant="primary")
 
         btn_init.click(init, inputs=[novel_type, description], outputs=[
             short_memory, long_memory, written_paras, instruction1, instruction2, instruction3])
         btn_step.click(step, inputs=[short_memory, long_memory, instruction1, instruction2, instruction3, written_paras], outputs=[
             short_memory, long_memory, written_paras, selected_plan, instruction1, instruction2, instruction3])
 
-    with gr.Tab("Human-in-the-Loop"):
+    with gr.Tab("交互式模式"):
         with gr.Row():
             with gr.Column():
                 with gr.Box():
                     with gr.Row():
                         with gr.Column(scale=1, min_width=200):
                             novel_type = gr.Textbox(
-                                label="Novel Type", placeholder="e.g. science fiction")
+                                label="小说类型", placeholder="例如：科幻小说")
                         with gr.Column(scale=2, min_width=400):
-                            description = gr.Textbox(label="Description")
+                            description = gr.Textbox(label="描述")
                 btn_init = gr.Button(
-                    "Init Novel Generation", variant="primary")
-                gr.Examples(["Science Fiction", "Romance", "Mystery", "Fantasy",
-                            "Historical", "Horror", "Thriller", "Western", "Young Adult", ], inputs=[novel_type])
+                    "初始化小说创作", variant="primary")
+                gr.Examples(["玄幻","科幻","奇幻","武侠","仙侠","历史","言情","游戏","体育","灵异","同人","耽美","二次元"], inputs=[novel_type])
                 written_paras = gr.Textbox(
-                    label="Written Paragraphs (editable)", max_lines=23, lines=23)
+                    label="撰写段落（可编辑）", max_lines=23, lines=23)
             with gr.Column():
                 with gr.Box():
-                    gr.Markdown("### Memory Module\n")
+                    gr.Markdown("### 记忆模块\n")
                     short_memory = gr.Textbox(
-                        label="Short-Term Memory (editable)", max_lines=3, lines=3)
+                        label="短期记忆（可编辑）", max_lines=3, lines=3)
                     long_memory = gr.Textbox(
-                        label="Long-Term Memory (editable)", max_lines=6, lines=6)
+                        label="长期记忆（可编辑）", max_lines=6, lines=6)
                 with gr.Box():
-                    gr.Markdown("### Instruction Module\n")
+                    gr.Markdown("### 指示模块\n")
                     with gr.Row():
                         instruction1 = gr.Textbox(
-                            label="Instruction 1", max_lines=3, lines=3, interactive=False)
+                            label="指示1", max_lines=3, lines=3, interactive=False)
                         instruction2 = gr.Textbox(
-                            label="Instruction 2", max_lines=3, lines=3, interactive=False)
+                            label="指示2", max_lines=3, lines=3, interactive=False)
                         instruction3 = gr.Textbox(
-                            label="Instruction 3", max_lines=3, lines=3, interactive=False)
+                            label="指示3", max_lines=3, lines=3, interactive=False)
                     with gr.Row():
                         with gr.Column(scale=1, min_width=100):
-                            selected_plan = gr.Radio(["Instruction 1", "Instruction 2", "Instruction 3"], label="Instruction Selection",)
+                            selected_plan = gr.Radio(["指示1", "指示2", "指示3"], label="选择指示",)
                                                     #  info="Select the instruction you want to revise and use for the next step generation.")
                         with gr.Column(scale=3, min_width=300):
                             selected_instruction = gr.Textbox(
-                                label="Selected Instruction (editable)", max_lines=5, lines=5)
+                                label="选定的指示（可编辑）", max_lines=5, lines=5)
 
-                btn_step = gr.Button("Next Step", variant="primary")
+                btn_step = gr.Button("下一步", variant="primary")
 
         btn_init.click(init, inputs=[novel_type, description], outputs=[
             short_memory, long_memory, written_paras, instruction1, instruction2, instruction3])
@@ -279,5 +255,5 @@ with gr.Blocks(title="RecurrentGPT", css="footer {visibility: hidden}", theme="d
     demo.queue(concurrency_count=1)
 
 if __name__ == "__main__":
-    demo.launch(server_port=8005, share=True,
+    demo.launch(server_port=8006, share=False,
                 server_name="0.0.0.0", show_api=False)

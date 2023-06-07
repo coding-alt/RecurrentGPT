@@ -20,37 +20,37 @@ class Human:
         user_edited_plan = self.input["output_instruction"]
 
         input_text = f"""
-        Now imagine you are a novelist writing a Chinese novel with the help of ChatGPT. You will be given a previously written paragraph (wrote by you), and a paragraph written by your ChatGPT assistant, a summary of the main storyline maintained by your ChatGPT assistant, and a plan of what to write next proposed by your ChatGPT assistant.
-    I need you to write:
-    1. Extended Paragraph: Extend the new paragraph written by the ChatGPT assistant to twice the length of the paragraph written by your ChatGPT assistant.
-    2. Selected Plan: Copy the plan proposed by your ChatGPT assistant.
-    3. Revised Plan: Revise the selected plan into an outline of the next paragraph.
-    
-    Previously written paragraph:  
-    {previous_paragraph}
+        现在想象你是一个小说家，正在用ChatGPT写一本中文小说。你将获得一个先前写过的段落（由你写的），一个由你的ChatGPT助手写的段落，一个由你的ChatGPT助手维护的主要故事线的总结，以及一个由你的ChatGPT助手提出的下一步写什么的计划。
+        我需要你写下：
+        1. 扩展段落：将ChatGPT助手写的新段落扩展到你的ChatGPT助手写的段落的两倍长度。
+        2. 选定计划：复制你的ChatGPT助手提出的计划。
+        3. 修订计划：将选定的计划修订为下一段的大纲。
 
-    The summary of the main storyline maintained by your ChatGPT assistant:
-    {memory}
+        先前写过的段落：
+        {previous_paragraph}
 
-    The new paragraph written by your ChatGPT assistant:
-    {writer_new_paragraph}
+        你的ChatGPT助手维护的主要故事线的总结：
+        {memory}
 
-    The plan of what to write next proposed by your ChatGPT assistant:
-    {user_edited_plan}
+        你的ChatGPT助手写的新段落：
+        {writer_new_paragraph}
 
-    Now start writing, organize your output by strictly following the output format as below,所有输出仍然保持是中文:
-    
-    Extended Paragraph: 
-    <string of output paragraph>, around 40-50 sentences.
+        你的ChatGPT助手提出的下一步写什么的计划：
+        {user_edited_plan}
 
-    Selected Plan: 
-    <copy the plan here>
+        现在开始写作，严格按照以下的输出格式组织你的输出，所有输出仍然保持是中文：
 
-    Revised Plan:
-    <string of revised plan>, keep it short, around 5-7 sentences.
+        扩展段落：
+        <输出段落的字符串>，大约40-50个句子。
 
-    Very Important:
-    Remember that you are writing a novel. Write like a novelist and do not move too fast when writing the plan for the next paragraph. Think about how the plan can be attractive for common readers when selecting and extending the plan. Remember to follow the length constraints! Remember that the chapter will contain over 10 paragraphs and the novel will contain over 100 chapters. And the next paragraph will be the second paragraph of the second chapter. You need to leave space for future stories.
+        选定计划：
+        <在此处复制计划>
+
+        修订计划：
+        <修订计划的字符串>，保持简洁，大约5-7个句子。
+
+        非常重要：
+        记住你正在写一本小说。像小说家一样写作，编写下一段计划时不要过于匆忙。在选择和扩展计划时，考虑如何使计划对一般读者有吸引力。记住遵循长度限制！记住，章节将包含超过10个段落，小说将包含超过100个章节。而下一段将是第二章的第二段。你需要为未来的故事留下空间。
 
     """
         return input_text

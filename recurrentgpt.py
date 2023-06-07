@@ -34,51 +34,51 @@ class RecurrentGPT:
         top_k_memory = [self.long_memory[idx] for idx in top_k_idx]
         # combine the top 3 paragraphs
         input_long_term_memory = '\n'.join(
-            [f"Related Paragraphs {i+1} :" + selected_memory for i, selected_memory in enumerate(top_k_memory)])
+            [f"相关段落 {i+1} :" + selected_memory for i, selected_memory in enumerate(top_k_memory)])
         # randomly decide if a new character should be introduced
         if random.random() < new_character_prob:
             new_character_prompt = f"If it is reasonable, you can introduce a new character in the output paragrah and add it into the memory."
         else:
             new_character_prompt = ""
 
-        input_text = f"""I need you to help me write a novel. Now I give you a memory (a brief summary) of 400 words, you should use it to store the key content of what has been written so that you can keep track of very long context. For each time, I will give you your current memory (a brief summary of previous stories. You should use it to store the key content of what has been written so that you can keep track of very long context), the previously written paragraph, and instructions on what to write in the next paragraph. 
-    I need you to write:
-    1. Output Paragraph: the next paragraph of the novel. The output paragraph should contain around 20 sentences and should follow the input instructions.
-    2. Output Memory: The updated memory. You should first explain which sentences in the input memory are no longer necessary and why, and then explain what needs to be added into the memory and why. After that you should write the updated memory. The updated memory should be similar to the input memory except the parts you previously thought that should be deleted or added. The updated memory should only store key information. The updated memory should never exceed 20 sentences!
-    3. Output Instruction:  instructions of what to write next (after what you have written). You should output 3 different instructions, each is a possible interesting continuation of the story. Each output instruction should contain around 5 sentences
-    Here are the inputs: 
+        input_text = f"""我需要你帮我写一本小说。现在我给你一个记忆（一个简要的总结），大约400字，你应该用它来存储已经写下的关键内容，以便你能跟踪很长的上下文。每次，我会给你当前的记忆（之前故事的简要总结。你应该用它来存储已经写下的关键内容，以便你能跟踪很长的上下文），之前写下的段落，以及关于下一段要写什么的指示。
+        我需要你写下：
+        1. 输出段落：小说的下一段。输出段落应包含大约20个句子，并应遵循输入指示。
+        2. 输出记忆：更新的记忆。你应首先解释输入记忆中哪些句子不再需要，以及为什么，然后解释需要添加什么到记忆中，以及为什么。之后你应写下更新的记忆。更新的记忆应与输入记忆相似，除了你之前认为应该删除或添加的部分。更新的记忆只应存储关键信息。更新的记忆绝不能超过20个句子！
+        3. 输出指示：下一段（你写过的）要写什么的指示。你应输出3个不同的指示，每个都是故事可能的有趣延续。每个输出指示应包含大约5个句子。
+        这是输入：
 
-    Input Memory:  
-    {self.short_memory}
+        输入记忆：
+        {self.short_memory}
 
-    Input Paragraph:
-    {input_paragraph}
+        输入段落：
+        {input_paragraph}
 
-    Input Instruction:
-    {input_instruction}
+        输入指示：
+        {input_instruction}
 
-    Input Related Paragraphs:
-    {input_long_term_memory}
-    
-    Now start writing, organize your output by strictly following the output format as below:
-    Output Paragraph: 
-    <string of output paragraph>, around 20 sentences.
+        输入相关段落：
+        {input_long_term_memory}
 
-    Output Memory: 
-    Rational: <string that explain how to update the memory>;
-    Updated Memory: <string of updated memory>, around 10 to 20 sentences
+        现在开始写作，严格按照以下的输出格式组织你的输出：
+        输出段落：
+        <输出段落的字符串>，大约20个句子。
 
-    Output Instruction: 
-    Instruction 1: <content for instruction 1>, around 5 sentences
-    Instruction 2: <content for instruction 2>, around 5 sentences
-    Instruction 3: <content for instruction 3>, around 5 sentences
+        输出记忆：
+        理由：<解释如何更新记忆的字符串>；
+        更新的记忆：<更新记忆的字符串>，大约10到20个句子
 
-    Very important!! The updated memory should only store key information. The updated memory should never contain over 500 words!
-    Finally, remember that you are writing a novel. Write like a novelist and do not move too fast when writing the output instructions for the next paragraph. Remember that the chapter will contain over 10 paragraphs and the novel will contain over 100 chapters. And this is just the beginning. Just write some interesting staffs that will happen next. Also, think about what plot can be attractive for common readers when writing output instructions. 
+        输出指示：
+        写作指示 1：<写作指示1的内容>，大约5个句子
+        写作指示 2：<写作指示2的内容>，大约5个句子
+        写作指示 3：<写作指示3的内容>，大约5个句子
 
-    Very Important: 
-    You should first explain which sentences in the input memory are no longer necessary and why, and then explain what needs to be added into the memory and why. After that, you start rewrite the input memory to get the updated memory. 
-    {new_character_prompt}
+        非常重要！！更新的记忆只应存储关键信息。更新的记忆中绝不能包含超过500个单词！
+        最后，记住你正在写一本小说。像小说家一样写作，当编写下一段的输出指示时不要过于匆忙。记住，每个章节将包含超过10个段落，整部小说将包含超过100个章节。这只是开始。只需要写下一些接下来会发生的有趣的情节。在编写输出指示时，也要考虑哪些情节对一般读者来说是吸引人的。
+        非常重要：
+        你应该首先解释输入记忆中哪些句子不再必要以及为什么，然后解释需要添加什么到记忆中以及为什么。在此之后，你开始重写输入记忆以得到更新的记忆。
+        {new_character_prompt}
+        
     """
         return input_text
 
