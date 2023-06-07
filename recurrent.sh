@@ -1,6 +1,6 @@
 #!/bin/bash
-export OPENAI_API_KEY="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"
-export OPENAI_API_BASE="https://gpt.51aiwen.com/v1"
+export OPENAI_API_KEY=""
+export OPENAI_API_BASE=""
 iteration=10
 outfile=response.txt
 init_prompt=init_prompt.json
